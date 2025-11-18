@@ -1,0 +1,133 @@
+﻿<Window x:Class="LogicFunctionsTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Инструмент логических функций" Height="600" Width="800">
+    <Grid Margin="10">
+        <TabControl>
+            <!-- Вкладка 1: По номеру -->
+            <TabItem Header="По номеру">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Ввод параметров">
+                            <StackPanel>
+                                <TextBlock Text="Число переменных (n):" Margin="0,5"/>
+                                <TextBox Text="{Binding VariablesCountByNumber}" Margin="0,5"/>
+
+                                <TextBlock Text="Номер функции:" Margin="0,5"/>
+                                <TextBox Text="{Binding FunctionNumber}" Margin="0,5"/>
+
+                                <Button Content="Сгенерировать таблицу истинности" 
+                                        Command="{Binding GenerateByNumberCommand}"
+                                        Margin="0,10" Padding="10,5"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Результаты" Margin="0,10">
+                            <StackPanel>
+                                <TextBlock Text="Таблица истинности:" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding TruthTableByNumber}" Margin="10">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding StringRepresentation}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="ДНФ:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding DNFByNumber}" IsReadOnly="True" Height="60" 
+                                         TextWrapping="Wrap"/>
+
+                                <TextBlock Text="КНФ:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding KNFByNumber}" IsReadOnly="True" Height="60" 
+                                         TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Вкладка 2: По формуле -->
+            <TabItem Header="По формуле">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Ввод формулы">
+                            <StackPanel>
+                                <TextBlock Text="Формула:" Margin="0,5"/>
+                                <TextBox Text="{Binding FormulaInput}" Height="60" TextWrapping="Wrap"
+                                         AcceptsReturn="True"/>
+                                <TextBlock Text="Доступные операторы: ! not, &amp; and, | or, ^ xor, -&gt; импликация, = эквивалентность"
+                                           FontStyle="Italic" Margin="0,5"/>
+
+                                <Button Content="Разобрать и вычислить" 
+                                        Command="{Binding ParseFormulaCommand}"
+                                        Margin="0,10" Padding="10,5"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="Результаты" Margin="0,10">
+                            <StackPanel>
+                                <TextBlock Text="Таблица истинности:" FontWeight="Bold"/>
+                                <ItemsControl ItemsSource="{Binding TruthTableByFormula}" Margin="10">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding StringRepresentation}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Text="ДНФ:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding DNFFormula}" IsReadOnly="True" Height="60" 
+                                         TextWrapping="Wrap"/>
+
+                                <TextBlock Text="КНФ:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding KNFFormula}" IsReadOnly="True" Height="60" 
+                                         TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- Вкладка 3: Сравнение -->
+            <TabItem Header="Сравнение">
+                <ScrollViewer>
+                    <StackPanel Margin="10">
+                        <GroupBox Header="Сравнение функций">
+                            <StackPanel>
+                                <TextBlock Text="Первая функция:" Margin="0,5"/>
+                                <TextBox Text="{Binding FirstFunction}" Height="40" TextWrapping="Wrap"/>
+
+                                <TextBlock Text="Вторая функция:" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding SecondFunction}" Height="40" TextWrapping="Wrap"/>
+
+                                <Button Content="Эквивалентны?" 
+                                        Command="{Binding CompareFunctionsCommand}"
+                                        Margin="0,10" Padding="10,5"/>
+
+                                <TextBlock Text="Результат:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ComparisonResult}" IsReadOnly="True"/>
+
+                                <TextBlock Text="Контр-слово:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding CounterExample}" IsReadOnly="True"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        <Button x:Name="HelpButton" 
+                Content="?" 
+                Width="30" 
+                Height="30" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Bottom" 
+                Margin="0,0,0,0"
+                FontWeight="Bold" 
+                FontSize="14"
+                Background="#FF0078D7" 
+                Foreground="White"
+                BorderThickness="0"
+                Click="HelpButton_Click"
+                ToolTip="Открыть справку"/>
+    </Grid>
+</Window>
