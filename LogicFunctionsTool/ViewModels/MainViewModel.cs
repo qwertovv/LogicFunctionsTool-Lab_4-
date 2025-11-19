@@ -31,6 +31,8 @@ namespace LogicFunctionsTool.ViewModels
         public string SecondFunction { get; set; } = "x1 | x2";
         public string ComparisonResult { get; set; }
         public string CounterExample { get; set; }
+        public List<TruthTableRow> FirstFunctionTruthTable { get; set; }
+        public List<TruthTableRow> SecondFunctionTruthTable { get; set; }
 
         // Команды
         public ICommand GenerateByNumberCommand { get; }
@@ -120,18 +122,20 @@ namespace LogicFunctionsTool.ViewModels
                     Formula = basicFormula2
                 };
 
-                var table1 = function1.GenerateTruthTable();
-                var table2 = function2.GenerateTruthTable();
+                // Генерируем таблицы истинности для обеих функций
+                FirstFunctionTruthTable = function1.GenerateTruthTable();
+                SecondFunctionTruthTable = function2.GenerateTruthTable();
 
                 bool equivalent = true;
                 string counterExample = "";
 
-                for (int i = 0; i < table1.Count; i++)
+                // Сравниваем таблицы построчно
+                for (int i = 0; i < FirstFunctionTruthTable.Count; i++)
                 {
-                    if (table1[i].Result != table2[i].Result)
+                    if (FirstFunctionTruthTable[i].Result != SecondFunctionTruthTable[i].Result)
                     {
                         equivalent = false;
-                        counterExample = string.Join(" ", table1[i].InputValues.Select(v => v ? "1" : "0"));
+                        counterExample = string.Join(" ", FirstFunctionTruthTable[i].InputValues.Select(v => v ? "1" : "0"));
                         break;
                     }
                 }
@@ -139,8 +143,11 @@ namespace LogicFunctionsTool.ViewModels
                 ComparisonResult = equivalent ? "Функции эквивалентны" : "Функции не эквивалентны";
                 CounterExample = equivalent ? "Нет" : counterExample;
 
+                // Обновляем привязки данных
                 OnPropertyChanged(nameof(ComparisonResult));
                 OnPropertyChanged(nameof(CounterExample));
+                OnPropertyChanged(nameof(FirstFunctionTruthTable));
+                OnPropertyChanged(nameof(SecondFunctionTruthTable));
             }
             catch (Exception ex)
             {
