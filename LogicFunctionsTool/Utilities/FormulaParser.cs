@@ -1,6 +1,8 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace LogicFunctionsTool.Utilities
 {
@@ -74,7 +76,7 @@ namespace LogicFunctionsTool.Utilities
                     {
                         output.Add(stack.Pop());
                     }
-                    stack.Pop(); // Убираем "("
+                    stack.Pop();
                 }
                 else if (IsOperator(token))
                 {
@@ -95,6 +97,34 @@ namespace LogicFunctionsTool.Utilities
             return output;
         }
 
+        public string ToBasicOperators(string formula)
+        {
+            if (string.IsNullOrEmpty(formula))
+                return formula;
+
+            string result = formula;
+
+            // Заменяем текстовые операторы на символьные
+            result = result.Replace("not", "!")
+                          .Replace("and", "&")
+                          .Replace("or", "|")
+                          .Replace("xor", "^");
+
+            // Обрабатываем импликацию: A -> B ≡ !A | B
+            var implicationPattern = @"([^>!\s&|^()]+)\s*->\s*([^>!\s&|^()]+)";
+            result = Regex.Replace(result, implicationPattern, "!($1)|($2)");
+
+            // Обрабатываем эквивалентность: A = B ≡ (A & B) | (!A & !B)
+            var equivalencePattern = @"([^=!\s&|^()]+)\s*=\s*([^=!\s&|^()]+)";
+            result = Regex.Replace(result, equivalencePattern, "($1&$2)|(!$1&!$2)");
+
+            // Обрабатываем XOR: A ^ B ≡ (A & !B) | (!A & B)
+            var xorPattern = @"([^^!\s&|()]+)\s*\^\s*([^^!\s&|()]+)";
+            result = Regex.Replace(result, xorPattern, "($1&!$2)|(!$1&$2)");
+
+            return result;
+        }
+
         private bool IsOperatorChar(char c)
         {
             return c == '!' || c == '&' || c == '|' || c == '^' || c == '-' || c == '=';
@@ -102,24 +132,13 @@ namespace LogicFunctionsTool.Utilities
 
         private bool IsVariable(string token)
         {
-            return token.StartsWith("x") && token.Length > 1 &&
-                   char.IsDigit(token[1]) || token == "0" || token == "1";
+            return (token.StartsWith("x") && token.Length > 1 && char.IsDigit(token[1])) ||
+                   token == "0" || token == "1";
         }
 
         private bool IsOperator(string token)
         {
             return operatorsPriority.ContainsKey(token.ToLower());
-        }
-
-        public string ToBasicOperators(string formula)
-        {
-            // Заменяем расширенные операторы на базовые
-            return formula.Replace("->", "!A|B")
-                         .Replace("=", "!(A^B)")
-                         .Replace("xor", "^")
-                         .Replace("and", "&")
-                         .Replace("or", "|")
-                         .Replace("not", "!");
         }
     }
 }

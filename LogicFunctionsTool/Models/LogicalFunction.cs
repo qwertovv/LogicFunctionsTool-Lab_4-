@@ -1,11 +1,16 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using LogicFunctionsTool.Utilities;
 
 namespace LogicFunctionsTool.Models
 {
     public class LogicalFunction
     {
+        private FormulaParser parser = new FormulaParser();
+        private List<string> rpnTokens;
+
         public int VariablesCount { get; set; }
         public string Formula { get; set; }
         public int FunctionNumber { get; set; }
@@ -15,6 +20,13 @@ namespace LogicFunctionsTool.Models
         {
             var table = new List<TruthTableRow>();
             int rowCount = (int)Math.Pow(2, VariablesCount);
+
+            // Если задана формула, преобразуем ее в ОПЗ
+            if (!string.IsNullOrEmpty(Formula))
+            {
+                var tokens = parser.Tokenize(Formula);
+                rpnTokens = parser.ToRPN(tokens);
+            }
 
             for (int i = 0; i < rowCount; i++)
             {
@@ -33,10 +45,9 @@ namespace LogicFunctionsTool.Models
 
         private bool CalculateForValues(bool[] values)
         {
-            // Простая реализация - потом заменим на парсер формул
-            if (!string.IsNullOrEmpty(Formula))
+            if (!string.IsNullOrEmpty(Formula) && rpnTokens != null)
             {
-                return EvaluateFormula(Formula, values);
+                return EvaluateRPN(values);
             }
             else
             {
@@ -51,10 +62,49 @@ namespace LogicFunctionsTool.Models
             }
         }
 
-        private bool EvaluateFormula(string formula, bool[] values)
+        private bool EvaluateRPN(bool[] values)
         {
-            // Временная заглушка
-            return true;
+            Stack<bool> stack = new Stack<bool>();
+
+            foreach (string token in rpnTokens)
+            {
+                if (IsVariable(token))
+                {
+                    int varIndex = int.Parse(token.Substring(1)) - 1;
+                    if (varIndex < values.Length)
+                        stack.Push(values[varIndex]);
+                    else
+                        stack.Push(false);
+                }
+                else if (token == "!")
+                {
+                    bool operand = stack.Pop();
+                    stack.Push(!operand);
+                }
+                else if (token == "&")
+                {
+                    bool right = stack.Pop();
+                    bool left = stack.Pop();
+                    stack.Push(left && right);
+                }
+                else if (token == "|")
+                {
+                    bool right = stack.Pop();
+                    bool left = stack.Pop();
+                    stack.Push(left || right);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Неизвестный оператор: {token}");
+                }
+            }
+
+            return stack.Pop();
+        }
+
+        private bool IsVariable(string token)
+        {
+            return token.StartsWith("x") && token.Length > 1 && char.IsDigit(token[1]);
         }
     }
 

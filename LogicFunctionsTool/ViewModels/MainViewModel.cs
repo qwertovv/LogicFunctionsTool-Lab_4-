@@ -1,4 +1,5 @@
-﻿using LogicFunctionsTool.Models;
+﻿
+using LogicFunctionsTool.Models;
 using LogicFunctionsTool.Utilities;
 using System;
 using System.Collections.Generic;
@@ -27,7 +28,7 @@ namespace LogicFunctionsTool.ViewModels
 
         // Вкладка "Сравнение"
         public string FirstFunction { get; set; } = "x1 & x2";
-        public string SecondFunction { get; set; } = "!(x1 | x2)";
+        public string SecondFunction { get; set; } = "x1 | x2";
         public string ComparisonResult { get; set; }
         public string CounterExample { get; set; }
 
@@ -71,10 +72,14 @@ namespace LogicFunctionsTool.ViewModels
         {
             try
             {
+                string basicFormula = parser.ToBasicOperators(FormulaInput);
+                int varsCount = CountVariablesInFormula(FormulaInput);
+                if (varsCount == 0) varsCount = 1;
+
                 var function = new LogicalFunction
                 {
-                    VariablesCount = CountVariablesInFormula(FormulaInput),
-                    Formula = FormulaInput
+                    VariablesCount = varsCount,
+                    Formula = basicFormula
                 };
 
                 TruthTableByFormula = function.GenerateTruthTable();
@@ -95,16 +100,24 @@ namespace LogicFunctionsTool.ViewModels
         {
             try
             {
+                string basicFormula1 = parser.ToBasicOperators(FirstFunction);
+                string basicFormula2 = parser.ToBasicOperators(SecondFunction);
+
+                int varsCount1 = CountVariablesInFormula(FirstFunction);
+                int varsCount2 = CountVariablesInFormula(SecondFunction);
+                int maxVars = Math.Max(varsCount1, varsCount2);
+                if (maxVars == 0) maxVars = 1;
+
                 var function1 = new LogicalFunction
                 {
-                    VariablesCount = CountVariablesInFormula(FirstFunction),
-                    Formula = FirstFunction
+                    VariablesCount = maxVars,
+                    Formula = basicFormula1
                 };
 
                 var function2 = new LogicalFunction
                 {
-                    VariablesCount = CountVariablesInFormula(SecondFunction),
-                    Formula = SecondFunction
+                    VariablesCount = maxVars,
+                    Formula = basicFormula2
                 };
 
                 var table1 = function1.GenerateTruthTable();
@@ -131,11 +144,10 @@ namespace LogicFunctionsTool.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Ошибка: {ex.Message}");
+                System.Windows.MessageBox.Show($"Ошибка сравнения: {ex.Message}");
             }
         }
 
-       
         internal string GenerateDNF(List<TruthTableRow> table)
         {
             var terms = new List<string>();
@@ -171,22 +183,17 @@ namespace LogicFunctionsTool.ViewModels
             if (string.IsNullOrEmpty(formula))
                 return 0;
 
-            var variables = new HashSet<string>();
-            var tokens = formula.Split(new[] { ' ', '(', ')', '&', '|', '!', '^', '-', '>', '=', 'n', 'o', 't', 'a', 'd', 'r', 'x' },
-                                      StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var token in tokens)
+            var variables = new HashSet<int>();
+            var matches = System.Text.RegularExpressions.Regex.Matches(formula, @"x(\d+)");
+            foreach (System.Text.RegularExpressions.Match match in matches)
             {
-                if (token.StartsWith("x") && token.Length > 1 && char.IsDigit(token[1]))
+                if (match.Success && int.TryParse(match.Groups[1].Value, out int varNumber))
                 {
-                    variables.Add(token);
-                }
-                else if (token.All(char.IsDigit) && token != "0" && token != "1")
-                {
-                    variables.Add($"x{token}");
+                    variables.Add(varNumber);
                 }
             }
-            return variables.Count;
+
+            return variables.Count > 0 ? variables.Max() : 0;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
